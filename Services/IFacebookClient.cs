@@ -11,6 +11,6 @@ namespace facebook_demo.Services
 
         Task<IDictionary<string, T>> BatchAsync<T>(string accessToken, string query, int seq);
 
-        Task PostAsync(string accessToken, string endpoint, object data, string args = null);
+        Task<T> PostAsync<T>(string accessToken, string endpoint, object data, string args = null);
     }
 }

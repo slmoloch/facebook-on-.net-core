@@ -35,12 +35,14 @@ namespace facebook_demo.Services
             await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         }
 
-        public async Task SignIn(HttpContext httpContext, string name, string pageToken)
+        public async Task SignIn(HttpContext httpContext, string userName, string pageToken, string userToken, string appToken)
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, name, ClaimValueTypes.String),
+                new Claim(ClaimTypes.Name, userName, ClaimValueTypes.String),
                 new Claim("PageToken", pageToken, ClaimValueTypes.String),
+                new Claim("UserToken", userToken, ClaimValueTypes.String),
+                new Claim("AppToken", appToken, ClaimValueTypes.String),
             };
 
             var userIdentity = new ClaimsIdentity(claims, "Facebook");
@@ -55,6 +57,16 @@ namespace facebook_demo.Services
         public string GetPageToken(ClaimsPrincipal principal)
         {
             return principal.FindFirstValue("PageToken");
+        }
+
+        public string GetUserToken(ClaimsPrincipal principal)
+        {
+            return principal.FindFirstValue("UserToken");
+        }
+
+        public string GetAppToken(ClaimsPrincipal principal)
+        {
+            return principal.FindFirstValue("AppToken");
         }
     }
 }

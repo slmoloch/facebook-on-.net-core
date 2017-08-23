@@ -21,8 +21,25 @@ namespace facebook_demo.Services
             var appSecret = configuration["Authentication:Facebook:AppSecret"];
 
             var result = await facebookClient.GetPublicAsync<dynamic>(
-                "oauth/access_token", 
+                "oauth/access_token",
                 $"client_id={appId}&redirect_uri={redirectUrl}&client_secret={appSecret}&code={code}");
+
+            if (result == null)
+            {
+                return null;
+            }
+
+            return result.access_token;
+        }
+
+        public async Task<string> GetAppToken(string userToken, string pageId)
+        {
+            var appId = configuration["Authentication:Facebook:AppId"];
+            var appSecret = configuration["Authentication:Facebook:AppSecret"];
+
+            var result = await facebookClient.GetPublicAsync<dynamic>(
+                "oauth/access_token",
+                $"client_id={appId}&client_secret={appSecret}&grant_type=client_credentials");
 
             if (result == null)
             {
@@ -114,10 +131,37 @@ namespace facebook_demo.Services
             return r;
         }
 
+        public async Task<string> AddVideoObject(string accessToken, string videoUrl, string imageUrl, string title)
+        {
+            var appId = configuration["Authentication:Facebook:AppId"];
+
+            var opengraphobject =
+                $"{{\"og:url\":\"{videoUrl}\",\"og:title\":\"{title}\",\"og:image\":\"{imageUrl}\"}}";
+             //   $"{{\"fb:app_id\":\"{appId}\",\"og:type\":\"video.other\",\"og:url\":\"{videoUrl}\",\"og:title\":\"{title}\",\"og:image\":\"{imageUrl}\"}}";
+
+            var response = await facebookClient.PostAsync<dynamic>(accessToken, $"app/objects/video.other", new { @object = opengraphobject });
+            
+            return response.id;
+        }
+
+        public async Task<string> AddWatchAction(string accessToken, string objectId)
+        {
+            var response = await facebookClient.PostAsync<dynamic>(accessToken, $"me/video.watches", new { video = objectId });
+
+            return response.id;
+        }
+
+        public async Task<string> AddLikeAction(string accessToken, string objectId)
+        {
+            var response = await facebookClient.PostAsync<dynamic>(accessToken, $"me/og.likes", new { @object = objectId });
+
+            return response.id;
+        }
+
         public async Task PostOnPage(string accessToken, string pageId, string message, bool published, int publishOn)
-            => await facebookClient.PostAsync(accessToken, $"{pageId}/feed", new { message, published, scheduled_publish_time = publishOn });
+            => await facebookClient.PostAsync<dynamic>(accessToken, $"{pageId}/feed", new { message, published, scheduled_publish_time = publishOn });
 
         public async Task PublishPostOnPage(string accessToken, string postId)
-            => await facebookClient.PostAsync(accessToken, $"{postId}", new { is_published = true });
+            => await facebookClient.PostAsync<dynamic>(accessToken, $"{postId}", new { is_published = true });
     }
 }

@@ -39,7 +39,7 @@ namespace facebook_demo.Controllers
             var url = facebookClient.GetLoginUrl(
                 configuration["Authentication:Facebook:AppId"], 
                 returnUrl, 
-                new List<string>() { "manage_pages", "publish_pages", "read_insights" });
+                new List<string>() { "manage_pages", "publish_pages", "read_insights", "publish_actions", "user_actions.video" });
 
             return Redirect(url);
         }
@@ -57,12 +57,11 @@ namespace facebook_demo.Controllers
             var pageId = configuration["PageId"];
 
             var pageToken = await facebookService.GetPageToken(userToken, pageId);
-
-            //await facebookService.PostOnPage(pageToken, pageId, "Hello, Master1!");
+            var appToken = await facebookService.GetAppToken(userToken, pageId);
 
             var userName = account.FirstName + " " + account.LastName;
 
-            await authManager.SignIn(HttpContext, userName, pageToken);
+            await authManager.SignIn(HttpContext, userName, pageToken, userToken, appToken);
 
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }

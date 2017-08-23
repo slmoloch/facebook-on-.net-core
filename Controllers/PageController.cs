@@ -46,7 +46,6 @@ namespace facebook_demo.Controllers
         {
             try
             {
-
                 var isPublished = checkBoxToBool(collection["Published"]);
                 var publishOnTimestamp = 0;
 
@@ -95,6 +94,24 @@ namespace facebook_demo.Controllers
 
             var postOnWallAsync = facebookService.PublishPostOnPage(pageToken, id);
             Task.WaitAll(postOnWallAsync);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<ActionResult> PostVideo()
+        {
+            var appToken = authManager.GetAppToken(User);
+
+            var objectId = await facebookService.AddVideoObject(
+                appToken,
+                "http://yauheni.me/1",
+                "https://images-na.ssl-images-amazon.com/images/M/MV5BYjFkMTlkYWUtZWFhNy00M2FmLThiOTYtYTRiYjVlZWYxNmJkXkEyXkFqcGdeQXVyNTAyODkwOQ@@._V1_SY1000_CR0,0,666,1000_AL_.jpg",
+                "My Movie app");
+
+            var userToken = authManager.GetUserToken(User);
+
+            await facebookService.AddWatchAction(userToken, objectId);
+            await facebookService.AddLikeAction(userToken, objectId);
 
             return RedirectToAction(nameof(Index));
         }

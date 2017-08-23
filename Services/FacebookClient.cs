@@ -52,12 +52,31 @@ namespace facebook_demo.Services
         {
             var response = await httpClient.GetAsync($"{endpoint}?access_token={accessToken}&{args}");
 
+            return await ProcessResponse<T>(response);
+        }
+
+        private static async Task<T> ProcessResponse<T>(HttpResponseMessage response)
+        {
             if (!response.IsSuccessStatusCode)
                 return default(T);
 
             var result = await response.Content.ReadAsStringAsync();
 
+            if (string.IsNullOrEmpty(result))
+            {
+                return default(T);
+            }
+
             return JsonConvert.DeserializeObject<T>(result);
+        }
+
+        public async Task<T> PostAsync<T>(string accessToken, string endpoint, object data, string args = null)
+        {
+            var payload = GetPayload(data);
+
+            var response = await httpClient.PostAsync($"{endpoint}?access_token={accessToken}&{args}", payload);
+
+            return await ProcessResponse<T>(response);
         }
 
         public async Task<IDictionary<string, T>> BatchAsync<T>(string accessToken, string query, int seq)
@@ -68,7 +87,7 @@ namespace facebook_demo.Services
 
             if (!response.IsSuccessStatusCode)
                 return new Dictionary<string, T>();
-    
+
             var result = await response.Content.ReadAsStringAsync();
 
             var wrapper = JsonConvert.DeserializeObject<dynamic>(result);
@@ -87,12 +106,6 @@ namespace facebook_demo.Services
             }
 
             return dict;
-        }
-
-        public async Task PostAsync(string accessToken, string endpoint, object data, string args = null)
-        {
-            var payload = GetPayload(data);
-            await httpClient.PostAsync($"{endpoint}?access_token={accessToken}&{args}", payload);
         }
 
         private static StringContent GetPayload(object data)
